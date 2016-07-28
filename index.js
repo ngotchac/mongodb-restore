@@ -16,6 +16,7 @@ var fs = require('graceful-fs');
 var BSON;
 var logger;
 var meta;
+var errorHandler;
 
 /*
  * functions
@@ -27,7 +28,9 @@ var meta;
  * @param {Object} err - raised error
  */
 function error(err) {
-
+  if (typeof errorHandler === 'function') {
+    errorHandler(err.message);
+  }
   return logger(err.message);
 }
 
@@ -393,6 +396,10 @@ function wrapper(my) {
       return c();
     };
   }
+  
+  if (typeof my.errorHandler === 'function') {
+    errorHandler = my.errorHandler;
+  }
 
   /**
    * end point
@@ -549,6 +556,7 @@ function restore(options) {
     stream: opt.stream || null,
     parser: opt.parser || 'bson',
     callback: typeof opt.callback === 'function' ? opt.callback : null,
+    errorHandler: typeof opt.errorHandler === 'function' ? opt.errorHandler : null,
     tar: typeof opt.tar === 'string' ? opt.tar : null,
     logger: typeof opt.logger === 'string' ? resolve(opt.logger) : null,
     metadata: Boolean(opt.metadata),
